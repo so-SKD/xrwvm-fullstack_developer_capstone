@@ -4,7 +4,6 @@ img{
 }
 
 .card{
-  border: rgb(103, 102, 105) 3px solid;
   display: flex;  
   flex-direction: column;
   margin-left:5%;
@@ -34,11 +33,16 @@ img{
 
 .title{
   font-size: 20px;
-  background-color: rgb(97, 64, 128);
-  color: white;
+  background-color: rgb(58, 58, 58);
+  color: rgb(255, 255, 255);
   text-align: center;
+  font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
   margin:20px;
   padding:5px;
+  border-radius: 50px;
+  letter-spacing: 2px;
 }
 
 .homepage_links{
