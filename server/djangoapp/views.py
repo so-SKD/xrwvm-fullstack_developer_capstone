@@ -8,10 +8,11 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from datetime import datetime
 from django.http import JsonResponse
+from .models import CarMake, CarModel
 import logging
 import json
 from django.views.decorators.csrf import csrf_exempt
-# from .populate import initiate
+from .populate import initiate
 
 
 # Get an instance of a logger
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 # Create your views here.
 
-# Create a `login_request` view to handle sign in request
+# User Registration View
 @csrf_exempt
 def register_user(request):
     context = {}
@@ -51,6 +52,8 @@ def register_user(request):
     else :
         data = {"userName":username,"error":"Already Registered"}
         return JsonResponse(data)
+
+# User Login View
 def login_user(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -73,7 +76,7 @@ def login_user(request):
 
     return JsonResponse({"error": "POST request required"})
 
-# Create a `logout_request` view to handle sign out request
+# User Logout View
 def logout_request(request):
     logout(request) # Terminate user session
     data = {"userName":""} # Return empty username
@@ -88,6 +91,22 @@ def logout_request(request):
 # a list of dealerships
 # def get_dealerships(request):
 # ...
+
+# Get Cars view
+def get_cars(request):
+    logger.debug("Entering get_cars view")
+    
+    # Initialize data only if there are no CarMakes
+    if CarMake.objects.count() == 0:
+        logger.info("No car makes found, initiating data population.")
+        initiate()
+
+    # Fetch car models
+    car_models = CarModel.objects.select_related('car_make')
+    cars = [{"CarModel": car_model.name, "CarMake": car_model.car_make.name} for car_model in car_models]
+
+    logger.debug(f"Retrieved {len(cars)} car models.")
+    return JsonResponse({"CarModels": cars})
 
 # Create a `get_dealer_reviews` view to render the reviews of a dealer
 # def get_dealer_reviews(request,dealer_id):
