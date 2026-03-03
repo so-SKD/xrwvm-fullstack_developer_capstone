@@ -28,16 +28,7 @@ class CarModel(models.Model):
     ]
     type = models.CharField(max_length=10, choices=CAR_TYPES, default="SUV")
     year = models.IntegerField(validators=[MinValueValidator(2015), MaxValueValidator(2023)])
-    fuel_type = models.CharField(max_length=20, choices=[
-        ('GASOLINE', 'Gasoline'),
-        ('DIESEL', 'Diesel'),
-        ('ELECTRIC', 'Electric'),
-        ('HYBRID', 'Hybrid'),
-    ])
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    color_options = models.CharField(max_length=255)
-    mileage = models.PositiveIntegerField(default=0)
-
+   
     def __str__(self):
         return f"{self.car_make.name} {self.name}"
 
