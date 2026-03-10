@@ -1,18 +1,10 @@
-# Uncomment the required imports before adding the code
-
-from django.shortcuts import render
-#from django.http import HttpResponseRedirect, HttpResponse
-from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import login, authenticate, logout
-from django.contrib import messages
-from datetime import datetime
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from .models import CarMake, CarModel
 import logging
 import json
 from .restapis import get_request, analyze_review_sentiments, post_review
-from django.views.decorators.csrf import csrf_exempt
 from .populate import initiate
 
 
@@ -20,12 +12,9 @@ from .populate import initiate
 logger = logging.getLogger(__name__)
 
 
-# Create your views here.
-
 # User Registration View
 @csrf_exempt
 def register_user(request):
-    context = {}
     # Load JSON data from the request body
     data = json.loads(request.body)
     username = data['userName']
@@ -33,26 +22,24 @@ def register_user(request):
     first_name = data['firstName']
     last_name = data['lastName']
     email = data['email']
-    username_exist = False
-    email_exist = False
+
     try:
         # Check if user already exists
         User.objects.get(username=username)
-        username_exist = True
-    except:
+        return JsonResponse({"userName": username, "error": "Already Registered"})
+    except User.DoesNotExist:
         # If not, simply log this is a new user
-        logger.debug("{} is new user".format(username))
-    # If it is a new user
-    if not username_exist:
-        # Create user in auth_user table
-        user = User.objects.create_user(username=username, first_name=first_name, last_name=last_name,password=password, email=email)
-        # Login the user and redirect to list page
-        login(request, user)
-        data = {"userName":username,"status":"Authenticated"}
-        return JsonResponse(data)
-    else :
-        data = {"userName":username,"error":"Already Registered"}
-        return JsonResponse(data)
+        logger.debug(f"{username} is a new user")
+
+    # Create user in auth_user table
+    user = User.objects.create_user(
+        username=username, first_name=first_name, last_name=last_name,
+        password=password, email=email
+    )
+    # Login the user
+    login(request, user)
+    return JsonResponse({"userName": username, "status": "Authenticated"})
+
 
 # User Login View
 def login_user(request):
@@ -77,28 +64,21 @@ def login_user(request):
 
     return JsonResponse({"error": "POST request required"})
 
+
 # User Logout View
 def logout_request(request):
-    logout(request) # Terminate user session
-    data = {"userName":""} # Return empty username
-    return JsonResponse(data)
+    logout(request)  # Terminate user session
+    return JsonResponse({"userName": ""})  # Return empty username
 
-# Create a `registration` view to handle sign up request
-# @csrf_exempt
-# def registration(request):
-# ...
 
-#Update the `get_dealerships` render list of dealerships all by default, particular state if state is passed
+# Update the `get_dealerships` render list of dealerships (All or particular state)
 def get_dealerships(request, state="All"):
-    if(state == "All"):
-        endpoint = "/fetchDealers"
-    else:
-        endpoint = "/fetchDealers/"+state
+    endpoint = f"/fetchDealers/{state}" if state != "All" else "/fetchDealers"
     dealerships = get_request(endpoint)
-    return JsonResponse({"status":200,"dealers":dealerships})
+    return JsonResponse({"status": 200, "dealers": dealerships})
 
 
-# Get Cars view
+# Get Cars View
 def get_cars(request):
     logger.debug("Entering get_cars view")
     
@@ -114,46 +94,40 @@ def get_cars(request):
     logger.debug(f"Retrieved {len(cars)} car models.")
     return JsonResponse({"CarModels": cars})
 
-# Create a `get_dealer_reviews` view to render the reviews of a dealer
+
+# Get Dealer Reviews View
 def get_dealer_reviews(request, dealer_id):
-    # if dealer id has been provided
     if dealer_id:
-        endpoint = "/fetchReviews/dealer/" + str(dealer_id)
+        endpoint = f"/fetchReviews/dealer/{dealer_id}"
         reviews = get_request(endpoint)
 
         for review_detail in reviews:
             response = analyze_review_sentiments(review_detail['review'])
-            print(response)
-
-            if response and 'sentiment' in response:
-                review_detail['sentiment'] = response['sentiment']
-            else:
-                review_detail['sentiment'] = "neutral"
+            review_detail['sentiment'] = response.get('sentiment', "neutral")
 
         return JsonResponse({"status": 200, "reviews": reviews})
-    else:
-        return JsonResponse({"status": 400, "message": "Bad Request"})
+    
+    return JsonResponse({"status": 400, "message": "Bad Request"})
 
 
-# Create a `get_dealer_details` view to render the dealer details
+# Get Dealer Details View
 def get_dealer_details(request, dealer_id):
-    if(dealer_id):
-        endpoint = "/fetchDealer/"+str(dealer_id)
+    if dealer_id:
+        endpoint = f"/fetchDealer/{dealer_id}"
         dealership = get_request(endpoint)
-        return JsonResponse({"status":200,"dealer":dealership})
-    else:
-        return JsonResponse({"status":400,"message":"Bad Request"})
+        return JsonResponse({"status": 200, "dealer": dealership})
+    
+    return JsonResponse({"status": 400, "message": "Bad Request"})
 
 
-# Create a `add_review` view to submit a review
+# Add Review View
 def add_review(request):
-    if(request.user.is_anonymous == False):
+    if not request.user.is_anonymous:
         data = json.loads(request.body)
         try:
             response = post_review(data)
-            return JsonResponse({"status":200})
-        except:
-            return JsonResponse({"status":401,"message":"Error in posting review"})
-    else:
-        return JsonResponse({"status":403,"message":"Unauthorized"})
-
+            return JsonResponse({"status": 200})
+        except Exception:
+            return JsonResponse({"status": 401, "message": "Error in posting review"})
+    
+    return JsonResponse({"status": 403, "message": "Unauthorized"})
