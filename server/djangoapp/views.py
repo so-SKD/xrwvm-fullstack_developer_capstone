@@ -26,7 +26,11 @@ def register_user(request):
     try:
         # Check if user already exists
         User.objects.get(username=username)
-        return JsonResponse({"userName": username, "error": "Already Registered"})
+        return JsonResponse(
+            {"userName": username, 
+            "error": "Already Registered"
+            }
+        )
     except User.DoesNotExist:
         # If not, simply log this is a new user
         logger.debug(f"{username} is a new user")
@@ -71,7 +75,7 @@ def logout_request(request):
     return JsonResponse({"userName": ""})  # Return empty username
 
 
-# Update the `get_dealerships` render list of dealerships (All or particular state)
+# Update the `get_dealerships` render list of dealerships
 def get_dealerships(request, state="All"):
     endpoint = f"/fetchDealers/{state}" if state != "All" else "/fetchDealers"
     dealerships = get_request(endpoint)
@@ -81,7 +85,7 @@ def get_dealerships(request, state="All"):
 # Get Cars View
 def get_cars(request):
     logger.debug("Entering get_cars view")
-    
+
     # Initialize data only if there are no CarMakes
     if CarMake.objects.count() == 0:
         logger.info("No car makes found, initiating data population.")
@@ -89,7 +93,13 @@ def get_cars(request):
 
     # Fetch car models
     car_models = CarModel.objects.select_related('car_make')
-    cars = [{"CarModel": car_model.name, "CarMake": car_model.car_make.name} for car_model in car_models]
+    cars = [
+        {
+        "CarModel": car_model.name, 
+        "CarMake": car_model.car_make.name
+        } 
+        for car_model in car_models
+        ]
 
     logger.debug(f"Retrieved {len(cars)} car models.")
     return JsonResponse({"CarModels": cars})
@@ -106,7 +116,7 @@ def get_dealer_reviews(request, dealer_id):
             review_detail['sentiment'] = response.get('sentiment', "neutral")
 
         return JsonResponse({"status": 200, "reviews": reviews})
-    
+
     return JsonResponse({"status": 400, "message": "Bad Request"})
 
 
@@ -116,7 +126,7 @@ def get_dealer_details(request, dealer_id):
         endpoint = f"/fetchDealer/{dealer_id}"
         dealership = get_request(endpoint)
         return JsonResponse({"status": 200, "dealer": dealership})
-    
+
     return JsonResponse({"status": 400, "message": "Bad Request"})
 
 
@@ -128,6 +138,10 @@ def add_review(request):
             post_review(data)
             return JsonResponse({"status": 200})
         except Exception:
-            return JsonResponse({"status": 401, "message": "Error in posting review"})
-    
+            return JsonResponse(
+                {"status": 401, 
+                "message": "Error in posting review"
+                }
+            )
+
     return JsonResponse({"status": 403, "message": "Unauthorized"})
