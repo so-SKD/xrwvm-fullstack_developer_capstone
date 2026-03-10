@@ -97,10 +97,12 @@ def get_cars(request):
         {
         "CarModel": car_model.name, 
         "CarMake": car_model.car_make.name
-        } 
+        }
         for car_model in car_models
     ]
 
+    logger.debug(f"Retrieved {len(cars)} car models.")
+    return JsonResponse({"CarModels": cars})
 
     logger.debug(f"Retrieved {len(cars)} car models.")
     return JsonResponse({"CarModels": cars})
