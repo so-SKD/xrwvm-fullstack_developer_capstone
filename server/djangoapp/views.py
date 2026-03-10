@@ -12,6 +12,7 @@ from django.contrib.auth.models import User  # Import User model
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+
 # User Registration View
 @csrf_exempt
 def register_user(request):
@@ -27,9 +28,8 @@ def register_user(request):
         # Check if user already exists
         User.objects.get(username=username)
         return JsonResponse(
-            {"userName": username, 
-            "error": "Already Registered"
-            }
+            {"userName": username,
+             "error": "Already Registered"}
         )
     except User.DoesNotExist:
         # If not, simply log this is a new user
@@ -99,7 +99,8 @@ def get_cars(request):
         "CarMake": car_model.car_make.name
         } 
         for car_model in car_models
-        ]
+    ]
+
 
     logger.debug(f"Retrieved {len(cars)} car models.")
     return JsonResponse({"CarModels": cars})
