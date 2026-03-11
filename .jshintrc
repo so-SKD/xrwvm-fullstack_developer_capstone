@@ -1,0 +1,13 @@
+{
+  "esversion": 8,
+  "node": true,
+  "browser": true,
+  "undef": true,
+  "unused": true,
+  "globals": {
+    "module": true,
+    "require": true,
+    "process": true,
+    "__dirname": true
+  }
+}
