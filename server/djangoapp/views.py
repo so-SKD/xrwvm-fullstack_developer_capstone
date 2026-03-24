@@ -103,7 +103,8 @@ def get_cars(request):
 
     logger.debug(f"Retrieved {len(cars)} car models.")
     return JsonResponse({"CarModels": cars})
-    
+
+
 # Get Dealer Details View
 def get_dealer_details(request, dealer_id):
     if dealer_id:
@@ -132,7 +133,10 @@ def add_review(request):
             response = post_review(data)
 
             if not response:
-                return JsonResponse({"status": 500, "message": "Backend failed"})
+                return JsonResponse({
+                    "status": 500, 
+                    "message": "Backend failed"
+                })
 
             return JsonResponse({"status": 200})
 
