@@ -109,18 +109,32 @@ def get_cars(request):
 
 
 # Get Dealer Reviews View
-def get_dealer_reviews(request, dealer_id):
-    if dealer_id:
-        endpoint = f"/fetchReviews/dealer/{dealer_id}"
-        reviews = get_request(endpoint)
+def get_request(endpoint, **kwargs):
+    params = ""
+    if kwargs:
+        for key, value in kwargs.items():
+            params = params + key + "=" + value + "&"
 
-        for review_detail in reviews:
-            response = analyze_review_sentiments(review_detail['review'])
-            review_detail['sentiment'] = response.get('sentiment', "neutral")
+    request_url = backend_url + endpoint + "?" + params
 
-        return JsonResponse({"status": 200, "reviews": reviews})
+    print("GET from {} ".format(request_url))
 
-    return JsonResponse({"status": 400, "message": "Bad Request"})
+    try:
+        response = requests.get(request_url)
+
+        if response.status_code != 200:
+            print("Bad response:", response.status_code)
+            return []
+
+        try:
+            return response.json()
+        except Exception as json_err:
+            print("JSON parse error:", json_err)
+            return []
+
+    except Exception as e:
+        print(f"Network exception occurred: {e}")
+        return []
 
 
 # Get Dealer Details View
