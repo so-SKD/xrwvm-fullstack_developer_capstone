@@ -21,17 +21,7 @@ urlpatterns = [
         view=views.get_dealer_reviews,
         name='dealer_details'
         ),
-
-    # path for get dealer review view
-  def get_dealer_reviews(request, dealer_id):
-    endpoint = f"/fetchReviews/dealer/{dealer_id}"
-    reviews = get_request(endpoint)
-
-    return JsonResponse({
-        "status": 200,
-        "reviews": reviews
-    })
-
+        
     # path to get cars
     path('get_cars/', views.get_cars, name='getcars'),
 

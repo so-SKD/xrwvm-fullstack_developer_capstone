@@ -119,6 +119,8 @@ def get_dealer_reviews(request, dealer_id):
     endpoint = f"/fetchReviews/dealer/{dealer_id}"
     reviews = get_request(endpoint)
 
+    print("REVIEWS RESPONSE:", reviews)
+
     return JsonResponse({
         "status": 200,
         "reviews": reviews
@@ -134,7 +136,7 @@ def add_review(request):
 
             if not response:
                 return JsonResponse({
-                    "status": 500, 
+                    "status": 500,
                     "message": "Backend failed"
                 })
 
@@ -148,4 +150,3 @@ def add_review(request):
     return JsonResponse(
         {"status": 403, "message": "Unauthorized"}
     )
-    
