@@ -27,7 +27,7 @@ def get_request(endpoint, **kwargs):
         return response.json()
     except Exception as e:
         print(f"Network exception occurred: {e}")
-        return []   
+        return []
 
 
 # Add code for get requests to back end
@@ -50,7 +50,13 @@ def post_review(data_dict):
     request_url = backend_url + "/insert_review"
     try:
         response = requests.post(request_url, json=data_dict)
-        print(response.json())
+
+        if response.status_code != 200:
+            print("POST failed:", response.status_code)
+            return None
+
         return response.json()
+
     except Exception as e:
         print(f"Network exception occurred: {e}")
+        return None

@@ -103,40 +103,7 @@ def get_cars(request):
 
     logger.debug(f"Retrieved {len(cars)} car models.")
     return JsonResponse({"CarModels": cars})
-
-    logger.debug(f"Retrieved {len(cars)} car models.")
-    return JsonResponse({"CarModels": cars})
-
-
-# Get Dealer Reviews View
-def get_request(endpoint, **kwargs):
-    params = ""
-    if kwargs:
-        for key, value in kwargs.items():
-            params = params + key + "=" + value + "&"
-
-    request_url = backend_url + endpoint + "?" + params
-
-    print("GET from {} ".format(request_url))
-
-    try:
-        response = requests.get(request_url)
-
-        if response.status_code != 200:
-            print("Bad response:", response.status_code)
-            return []
-
-        try:
-            return response.json()
-        except Exception as json_err:
-            print("JSON parse error:", json_err)
-            return []
-
-    except Exception as e:
-        print(f"Network exception occurred: {e}")
-        return []
-
-
+    
 # Get Dealer Details View
 def get_dealer_details(request, dealer_id):
     if dealer_id:
@@ -147,18 +114,34 @@ def get_dealer_details(request, dealer_id):
     return JsonResponse({"status": 400, "message": "Bad Request"})
 
 
+def get_dealer_reviews(request, dealer_id):
+    endpoint = f"/fetchReviews/dealer/{dealer_id}"
+    reviews = get_request(endpoint)
+
+    return JsonResponse({
+        "status": 200,
+        "reviews": reviews
+    })
+
+
 # Add Review View
 def add_review(request):
     if not request.user.is_anonymous:
         data = json.loads(request.body)
         try:
-            post_review(data)
+            response = post_review(data)
+
+            if not response:
+                return JsonResponse({"status": 500, "message": "Backend failed"})
+
             return JsonResponse({"status": 200})
-        except Exception:
+
+        except Exception as e:
             return JsonResponse(
-                {"status": 401, "message": "Error in posting review"}
+                {"status": 500, "message": str(e)}
             )
 
     return JsonResponse(
         {"status": 403, "message": "Unauthorized"}
     )
+    
